@@ -44,12 +44,82 @@ Publish the website in Localhost.
 
 ## PROGRAM:
 
+### calculator.html
+```html
+<!DOCTYPE html>
+<html>
+<head>
+    <title>GST Calculator</title>
+</head>
+<body>
+    <h1>GST Calculator</h1>
 
+    <form method="post">
+        {% csrf_token %}
+        <label for="price">Price :</label>
+        <input type="text" id="price" name="price" required><br><br>
+
+        <label for="gst">GST (R in %):</label>
+        <input type="text" id="gst" name="gst" required><br><br>
+
+        <button type="submit">Calculate</button>
+    </form>
+
+    {% if gst_amt is not None %}
+        <h2>Result:</h2>
+        {% if "Error" in gst_amt|stringformat:"s" %}
+            <p style="color: red;">{{ gst_amt }}</p>
+        {% else %}
+            <p>GST: {{ gst_amt|stringformat:".2f" }}</p>
+        {% endif %}
+    {% endif %}
+</body>
+</html>
+
+```
+### views.py
+```python
+from django.shortcuts import render
+
+def gst_amt_calculator(request):
+    gst_amt = None
+    if request.method == 'POST':
+        try:
+            price = float(request.POST.get('price'))
+            gst = float(request.POST.get('gst'))
+
+            if price >= 0 and gst >= 0:
+                gst_amt = price + ((price * gst) / 100)
+            else:
+                gst_amt = "Error: Inputs cannot be negative."
+        except ValueError:
+            gst_amt = "Error: Invalid input. Please enter numeric values."
+
+    context = {
+        'gst_amt': gst_amt
+    }
+    return render(request, 'calculator.html', context)
+
+```
+### urls.py
+```python
+from django.contrib import admin
+from django.urls import path
+from gst_app import views
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    path('', views.gst_amt_calculator, name='gst_amt'),
+]
+
+```
 ## OUTPUT - SERVER SIDE:
-
+![alt text](image.png)
 
 ## OUTPUT - WEBPAGE:
-
+![alt text](image-1.png)
+![alt text](image-2.png)
+![alt text](image-3.png)
 
 ## RESULT:
 The a web page to calculate total bill amount with GST from price and GST percentage using server-side scripts is created successfully.
